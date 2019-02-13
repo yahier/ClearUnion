@@ -24,25 +24,26 @@ public class MainActivity extends AppCompatActivity {
         GridLayoutManager layoutManager = new GridLayoutManager(this, 6);
         recyclerView.setLayoutManager(layoutManager);
         MainRecycleAdapter mAdapter = new MainRecycleAdapter(this);
-        mAdapter.setOnRemoveListener(this::testRemoveEffect);
+        mAdapter.setOnRemoveListener(positions -> {
+            recyclerView.postDelayed(() -> {
+                testRemoveEffect(positions);
+            }, 300);
+        });
         mAdapter.setData();
 
         recyclerView.setAdapter(mAdapter);
-
-
     }
-
 
     private void testRemoveEffect(int[] positions) {
         Log.e("准备删除", Arrays.toString(positions));
         for (int i = 0; i < positions.length; i++) {
-            View view = recyclerView.getChildAt(i);
+            View view = recyclerView.getChildAt(positions[i]);
             AnimatorSet set = new AnimatorSet();
             set.playTogether(
                     ObjectAnimator.ofFloat(view, "scaleX", 1, 0),
                     ObjectAnimator.ofFloat(view, "scaleY", 1, 0)
             );
-            set.setDuration(5000).start();
+            set.setDuration(2000).start();
         }
     }
 

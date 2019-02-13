@@ -94,11 +94,11 @@ public class MainRecycleAdapter extends RecyclerView.Adapter<MainRecycleAdapter.
                 positions[leftSize] = newTemp.getPosition();
 
                 for (int a = 0; a < rightSize; a++) {
-                    positions[leftSize + 1 + a] = newTemp.getPosition() + a;
+                    positions[leftSize + 1 + a] = newTemp.getPosition() + a + 1;
                 }
 
                 onRemoveListener.onReadyToMove(positions);
-                //i = i + 1 + rightSize;
+                i = i + 1 + rightSize;
             }
 
             //纵向消除
