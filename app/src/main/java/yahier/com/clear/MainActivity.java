@@ -40,8 +40,8 @@ public class MainActivity extends AppCompatActivity {
             View view = recyclerView.getChildAt(positions[i]);
             AnimatorSet set = new AnimatorSet();
             set.playTogether(
-                    ObjectAnimator.ofFloat(view, "scaleX", 1, 0),
-                    ObjectAnimator.ofFloat(view, "scaleY", 1, 0)
+                    ObjectAnimator.ofFloat(view, "scaleX", 1, 0.6f),
+                    ObjectAnimator.ofFloat(view, "scaleY", 1, 0.6f)
             );
             set.setDuration(2000).start();
         }

@@ -102,8 +102,22 @@ public class MainRecycleAdapter extends RecyclerView.Adapter<MainRecycleAdapter.
             }
 
             //纵向消除
-            if ((topSize + 1 + bottomSize) >= 3) {
+            int verticalSize = topSize + 1 + bottomSize;
+            if ((verticalSize) >= 3) {
+                int[] positions = new int[verticalSize];
+                for (int a = 0; a < topSize; a++) {
+                    positions[a] = newTemp.getPosition() - 6 * (a + 1);
+                }
 
+                positions[topSize] = newTemp.getPosition();
+
+                for (int a = 0; a < bottomSize; a++) {
+                    positions[topSize + 1 + a] = newTemp.getPosition() + (a + 1) * 6;
+                }
+
+                onRemoveListener.onReadyToMove(positions);
+                //todo 这里有破绽 可能一次性将一个横向的跳过去了
+                i = i + 1 + bottomSize;
             }
         }
     }
