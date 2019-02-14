@@ -18,6 +18,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
 
     public final static int spanCount = 6;
+    public final static int ElementHeight = 150;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,15 +48,15 @@ public class MainActivity extends AppCompatActivity {
      * orientation 横向为1 纵向为2
      */
     private void testRemoveEffect(int[] positions, int orientation) {
-        //Log.e("准备删除", Arrays.toString(positions));
+        Log.e("准备删除", Arrays.toString(positions));
         for (int i = 0; i < positions.length; i++) {
             View view = recyclerView.getChildAt(positions[i]);
             AnimatorSet set = new AnimatorSet();
             set.playTogether(
-                    ObjectAnimator.ofFloat(view, "scaleX", 1, 0.5f),
-                    ObjectAnimator.ofFloat(view, "scaleY", 1, 0.5f)
+                    ObjectAnimator.ofFloat(view, "scaleX", 1, 0f),
+                    ObjectAnimator.ofFloat(view, "scaleY", 1, 0f)
             );
-            set.setDuration(2000).start();
+            set.setDuration(8000).start();
         }
 
         recyclerView.postDelayed(() -> {
@@ -67,7 +68,6 @@ public class MainActivity extends AppCompatActivity {
      * 降落，填补空白
      */
     private void fillEmpty(int[] positions, int orientation) {
-        //先尝试降落一个格子
         int[] movePositions = null;
         if (orientation == 1) {
             for (int i = 0; i < positions.length; i++) {
@@ -91,11 +91,24 @@ public class MainActivity extends AppCompatActivity {
 
 
         } else {
+            List<Integer> listPosition = new ArrayList<>();
             for (int i = 0; i < positions.length; i++) {
-                positions[i] = positions[i] - 6 * (i + 1);
+                int temp = positions[i] - 6;
+                Log.d("准备移动", "temp:" + temp);
+                while (temp >= 0) {
+                    if (!listPosition.contains(temp))
+                        listPosition.add(temp);
+                    temp = temp - spanCount;
+                }
+            }
+
+            Log.e("准备移动", "size:" + listPosition.size());
+
+            movePositions = new int[listPosition.size()];
+            for (int i = 0; i < movePositions.length; i++) {
+                movePositions[i] = listPosition.get(i);
             }
         }
-        // movePositions = IntStream.of(positions).filter(item -> item >= 0).toArray();
 
         Log.e("准备移动", Arrays.toString(movePositions));
         for (int i = 0; i < movePositions.length; i++) {
@@ -103,15 +116,18 @@ public class MainActivity extends AppCompatActivity {
             AnimatorSet set = new AnimatorSet();
             int distance = 150;
             if (orientation == 1) {
-                distance = 150;   //todo  即使是横向删除后，下坠的距离也不是 全都150
+                int sameElement = sameElement(movePositions, movePositions[i]);
+                distance = ElementHeight * sameElement;
             } else {
-                distance = 150 * positions.length;
+                //fixme 此处有破绽，假如需要删除的数组是[3, 9, 15, 6, 0, 12, 18]，难道每个元素的移动都是相同的吗
+                //fixme 实际上 只有同一个垂直线上的元素，移动的距离才相同
+                distance = ElementHeight * positions.length;
             }
 
             set.playTogether(
                     ObjectAnimator.ofFloat(view, "translationY", 0, distance)
             );
-            set.setDuration(1000).start();
+            set.setDuration(5000).start();
         }
 
 
@@ -122,6 +138,20 @@ public class MainActivity extends AppCompatActivity {
      */
     private void generateNew() {
 
+    }
+
+
+    /**
+     * 返回 数组 中有该元素的个数。在横向删除中时 垂直的下面有多个元素被删除时 使用
+     */
+    private int sameElement(int[] array, int element) {
+        int sameCount = 0;
+        for (int temp : array) {
+            if (temp == element) {
+                sameCount++;
+            }
+        }
+        return sameCount;
     }
 
 }

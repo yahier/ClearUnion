@@ -35,7 +35,7 @@ public class MainRecycleAdapter extends RecyclerView.Adapter<MainRecycleAdapter.
     }
 
     public void setData() {
-        list = AnimalManager.getNewLine(4);
+        list = AnimalManager.getNewLine(5);
         notifyDataSetChanged();
         checkIfSameToClearNode();
         click1Position = click2Position = 0;
@@ -78,7 +78,9 @@ public class MainRecycleAdapter extends RecyclerView.Adapter<MainRecycleAdapter.
      */
     private void checkIfSameToClearNode() {
         //倒序 从下面删起
-        for (int i = list.size()-1; i >= 0; i--) {
+        List<Integer> listHorizontal = new ArrayList<>();
+        List<Integer> listVertical = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
             Animal temp = list.get(i);
             Animal newTemp = temp.clone();
 
@@ -90,41 +92,63 @@ public class MainRecycleAdapter extends RecyclerView.Adapter<MainRecycleAdapter.
             //横向消除
             int horizonLinkedSize = leftSize + 1 + rightSize;
             if (horizonLinkedSize >= 3) {
-                int[] positions = new int[horizonLinkedSize];
+                //int[] positions = new int[horizonLinkedSize];
                 for (int a = 0; a < leftSize; a++) {
-                    positions[a] = newTemp.getPosition() - leftSize + a;
+                    //positions[a] = newTemp.getPosition() - leftSize + a;
+                    listHorizontal.add(newTemp.getPosition() - leftSize + a);
                 }
 
-                positions[leftSize] = newTemp.getPosition();
+                //positions[leftSize] = newTemp.getPosition();
+                listHorizontal.add(newTemp.getPosition());
 
                 for (int a = 0; a < rightSize; a++) {
-                    positions[leftSize + 1 + a] = newTemp.getPosition() + a + 1;
+                    //positions[leftSize + 1 + a] = newTemp.getPosition() + a + 1;
+                    listHorizontal.add(newTemp.getPosition() + a + 1);
                 }
 
-                onRemoveListener.onReadyToMove(positions, 1);
-                i = i - 1 - leftSize;
+                //onRemoveListener.onReadyToMove(positions, 1);
+                i = i + 1 + rightSize;
             }
 
             //纵向消除
-//            int verticalSize = topSize + 1 + bottomSize;
-//            if ((verticalSize) >= 3) {
-//                int[] positions = new int[verticalSize];
-//                for (int a = 0; a < topSize; a++) {
-//                    positions[a] = newTemp.getPosition() - 6 * (a + 1);
-//                }
-//
-//                positions[topSize] = newTemp.getPosition();
-//
-//                for (int a = 0; a < bottomSize; a++) {
-//                    positions[topSize + 1 + a] = newTemp.getPosition() + (a + 1) * 6;
-//                }
-//
-//                //暂时先搞定横向的删除
-//                //onRemoveListener.onReadyToMove(positions, 2);
-//                //todo 这里有破绽 可能一次性将一个横向的跳过去了
-//                i = i + 1 + bottomSize;
-//            }
+            int verticalSize = topSize + 1 + bottomSize;
+            if ((verticalSize) >= 3) {
+                int[] positions = new int[verticalSize];
+                for (int a = 0; a < topSize; a++) {
+                    //positions[a] = newTemp.getPosition() - 6 * (a + 1);
+                    if (!listVertical.contains(newTemp.getPosition() - 6 * (a + 1)))
+                        listVertical.add(newTemp.getPosition() - 6 * (a + 1));
+                }
+
+                //positions[topSize] = newTemp.getPosition();
+                if (!listVertical.contains(newTemp.getPosition()))
+                    listVertical.add(newTemp.getPosition());
+
+                for (int a = 0; a < bottomSize; a++) {
+                    //positions[topSize + 1 + a] = newTemp.getPosition() + (a + 1) * 6;
+                    if (!listVertical.contains(newTemp.getPosition() + (a + 1) * 6))
+                        listVertical.add(newTemp.getPosition() + (a + 1) * 6);
+                }
+
+                //暂时先搞定横向的删除
+                //onRemoveListener.onReadyToMove(positions, 2);
+                //todo 这里有破绽 可能一次性将一个横向的跳过去了
+                i = i + 1 + bottomSize;
+            }
         }
+
+        int[] horizontals = new int[listHorizontal.size()];
+        for (int i = 0; i < listHorizontal.size(); i++) {
+            horizontals[i] = listHorizontal.get(i);
+        }
+        onRemoveListener.onReadyToMove(horizontals, 1);//横向解决，暂时屏蔽
+
+
+        int[] verticals = new int[listVertical.size()];
+        for (int i = 0; i < listVertical.size(); i++) {
+            verticals[i] = listVertical.get(i);
+        }
+        onRemoveListener.onReadyToMove(verticals, 2);
     }
 
 
