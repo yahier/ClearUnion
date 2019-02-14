@@ -35,9 +35,12 @@ public class MainRecycleAdapter extends RecyclerView.Adapter<MainRecycleAdapter.
     }
 
     public void setData() {
-        list = AnimalManager.getNewLine(8);
+        list = AnimalManager.getNewLine(4);
         notifyDataSetChanged();
         checkIfSameToClearNode();
+        click1Position = click2Position = 0;
+        clicked1 = clicked2 = false;
+
     }
 
     /**
@@ -74,7 +77,8 @@ public class MainRecycleAdapter extends RecyclerView.Adapter<MainRecycleAdapter.
      * 校验是否可消除 方法2 链表方式
      */
     private void checkIfSameToClearNode() {
-        for (int i = 0; i < list.size(); i++) {
+        //倒序 从下面删起
+        for (int i = list.size()-1; i >= 0; i--) {
             Animal temp = list.get(i);
             Animal newTemp = temp.clone();
 
@@ -97,28 +101,29 @@ public class MainRecycleAdapter extends RecyclerView.Adapter<MainRecycleAdapter.
                     positions[leftSize + 1 + a] = newTemp.getPosition() + a + 1;
                 }
 
-                onRemoveListener.onReadyToMove(positions);
-                i = i + 1 + rightSize;
+                onRemoveListener.onReadyToMove(positions, 1);
+                i = i - 1 - leftSize;
             }
 
             //纵向消除
-            int verticalSize = topSize + 1 + bottomSize;
-            if ((verticalSize) >= 3) {
-                int[] positions = new int[verticalSize];
-                for (int a = 0; a < topSize; a++) {
-                    positions[a] = newTemp.getPosition() - 6 * (a + 1);
-                }
-
-                positions[topSize] = newTemp.getPosition();
-
-                for (int a = 0; a < bottomSize; a++) {
-                    positions[topSize + 1 + a] = newTemp.getPosition() + (a + 1) * 6;
-                }
-
-                onRemoveListener.onReadyToMove(positions);
-                //todo 这里有破绽 可能一次性将一个横向的跳过去了
-                i = i + 1 + bottomSize;
-            }
+//            int verticalSize = topSize + 1 + bottomSize;
+//            if ((verticalSize) >= 3) {
+//                int[] positions = new int[verticalSize];
+//                for (int a = 0; a < topSize; a++) {
+//                    positions[a] = newTemp.getPosition() - 6 * (a + 1);
+//                }
+//
+//                positions[topSize] = newTemp.getPosition();
+//
+//                for (int a = 0; a < bottomSize; a++) {
+//                    positions[topSize + 1 + a] = newTemp.getPosition() + (a + 1) * 6;
+//                }
+//
+//                //暂时先搞定横向的删除
+//                //onRemoveListener.onReadyToMove(positions, 2);
+//                //todo 这里有破绽 可能一次性将一个横向的跳过去了
+//                i = i + 1 + bottomSize;
+//            }
         }
     }
 
@@ -240,7 +245,7 @@ public class MainRecycleAdapter extends RecyclerView.Adapter<MainRecycleAdapter.
 
 
     public interface OnRemoveListener {
-        void onReadyToMove(int[] positions);
+        void onReadyToMove(int[] positions, int orientation);
     }
 
 }
