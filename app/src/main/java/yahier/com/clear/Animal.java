@@ -7,6 +7,8 @@ public class Animal implements Cloneable {
     //左右上下 四个节点
     private Animal nodeLeft, nodeRight, nodeTop, nodeBottom;
 
+    int movePostion;
+
     public Animal(int type, int resId) {
         this.type = type;
         this.resId = resId;
@@ -74,6 +76,15 @@ public class Animal implements Cloneable {
 
     public void setNodeBottom(Animal nodeBottom) {
         this.nodeBottom = nodeBottom;
+    }
+
+
+    public int getMovePostion() {
+        return movePostion;
+    }
+
+    public void setMovePostion(int movePostion) {
+        this.movePostion = movePostion;
     }
 
     @Override

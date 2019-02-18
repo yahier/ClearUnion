@@ -32,133 +32,103 @@ public class MainRecycleAdapter extends RecyclerView.Adapter<MainRecycleAdapter.
 
     public MainRecycleAdapter(Context context) {
         this.context = context;
+        list = new ArrayList<>();
     }
 
     public void setData() {
-        list = AnimalManager.getNewLine(5);
+        list = AnimalManager.getNewLine(10);
         notifyDataSetChanged();
-        checkIfSameToClearNode();
+        checkToRemoveWithNode();
         click1Position = click2Position = 0;
         clicked1 = clicked2 = false;
 
     }
 
     /**
-     * 校验是否可消除 方法1  在列表中过滤 生成每个类别的新列表
+     * 校验是否删除 用链表的方式
      */
-    private void checkIfSameToClear() {
-        //横向遍历列表
-        List<Animal> list1 = new ArrayList<>();
-        List<Animal> list2 = new ArrayList<>();
-        List<Animal> list3 = new ArrayList<>();
-
-        for (int i = 0; i < list.size(); i++) {
-            Animal temp = list.get(i);
-            temp.setPosition(i);
-
-            switch (temp.getType()) {
-                case 1:
-                    list1.add(temp);
-                    break;
-                case 2:
-                    list2.add(temp);
-                    break;
-                case 3:
-                    list3.add(temp);
-                    break;
-            }
-        }
-
-
-    }
-
-
-    /**
-     * 校验是否可消除 方法2 链表方式
-     */
-    private void checkIfSameToClearNode() {
+    private void checkToRemoveWithNode() {
         //倒序 从下面删起
-        List<Integer> listHorizontal = new ArrayList<>();
-        List<Integer> listVertical = new ArrayList<>();
+        List<Integer> removes = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
             Animal temp = list.get(i);
-            Animal newTemp = temp.clone();
 
-            int leftSize = getSizeOfLinkedSameType(newTemp, 1);
-            int rightSize = getSizeOfLinkedSameType(newTemp, 3);
-            int topSize = getSizeOfLinkedSameType(newTemp, 2);
-            int bottomSize = getSizeOfLinkedSameType(newTemp, 4);
+            int leftSize = getSizeOfLinkedSameType(temp, 1);
+            int rightSize = getSizeOfLinkedSameType(temp, 3);
+            int topSize = getSizeOfLinkedSameType(temp, 2);
+            int bottomSize = getSizeOfLinkedSameType(temp, 4);
 
-            //横向消除
+
             int horizonLinkedSize = leftSize + 1 + rightSize;
-            if (horizonLinkedSize >= 3) {
-                //int[] positions = new int[horizonLinkedSize];
-                for (int a = 0; a < leftSize; a++) {
-                    //positions[a] = newTemp.getPosition() - leftSize + a;
-                    listHorizontal.add(newTemp.getPosition() - leftSize + a);
-                }
-
-                //positions[leftSize] = newTemp.getPosition();
-                listHorizontal.add(newTemp.getPosition());
-
-                for (int a = 0; a < rightSize; a++) {
-                    //positions[leftSize + 1 + a] = newTemp.getPosition() + a + 1;
-                    listHorizontal.add(newTemp.getPosition() + a + 1);
-                }
-
-                //onRemoveListener.onReadyToMove(positions, 1);
-                i = i + 1 + rightSize;
-            }
-
-            //纵向消除
             int verticalSize = topSize + 1 + bottomSize;
-            if ((verticalSize) >= 3) {
-                int[] positions = new int[verticalSize];
-                for (int a = 0; a < topSize; a++) {
-                    //positions[a] = newTemp.getPosition() - 6 * (a + 1);
-                    if (!listVertical.contains(newTemp.getPosition() - 6 * (a + 1)))
-                        listVertical.add(newTemp.getPosition() - 6 * (a + 1));
-                }
-
-                //positions[topSize] = newTemp.getPosition();
-                if (!listVertical.contains(newTemp.getPosition()))
-                    listVertical.add(newTemp.getPosition());
-
-                for (int a = 0; a < bottomSize; a++) {
-                    //positions[topSize + 1 + a] = newTemp.getPosition() + (a + 1) * 6;
-                    if (!listVertical.contains(newTemp.getPosition() + (a + 1) * 6))
-                        listVertical.add(newTemp.getPosition() + (a + 1) * 6);
-                }
-
-                //暂时先搞定横向的删除
-                //onRemoveListener.onReadyToMove(positions, 2);
-                //todo 这里有破绽 可能一次性将一个横向的跳过去了
-                i = i + 1 + bottomSize;
+            //横向消除
+            if (horizonLinkedSize >= 3 || verticalSize >= 3) {
+                //爆炸
+                removes.add(i);
+            } else {
+                int movePosition = getSizeOfRemovedUp(temp);
+                temp.setMovePostion(movePosition);
             }
         }
 
-        int[] horizontals = new int[listHorizontal.size()];
-        for (int i = 0; i < listHorizontal.size(); i++) {
-            horizontals[i] = listHorizontal.get(i);
-        }
-        onRemoveListener.onReadyToMove(horizontals, 1);//横向解决，暂时屏蔽
+        onRemoveListener.onReadyToMove(removes, list);
 
-
-        int[] verticals = new int[listVertical.size()];
-        for (int i = 0; i < listVertical.size(); i++) {
-            verticals[i] = listVertical.get(i);
-        }
-        onRemoveListener.onReadyToMove(verticals, 2);
     }
 
 
     /**
-     * 爆炸 消除
+     * 获取下面被移除的数目
      */
-    private void clearExplode(int position) {
+    private int getSizeOfRemovedUp(Animal animal) {
+        int size = 0;
+        if (animal == null) {
+            return 0;
+        }
 
+
+        Animal temp = animal.getNodeBottom();
+        while (temp != null) {
+            //获取此元素向下的连接数目
+            int bottomVerticalSize = getSizeOfLinkedSameType(temp, 4);
+
+            if (bottomVerticalSize + 1 >= 3) {
+                size = size + bottomVerticalSize + 1;
+                for (int i = 0; i < bottomVerticalSize; i++) {
+                    temp = temp.getNodeBottom();
+                }
+            } else
+                temp = temp.getNodeBottom();
+        }
+
+        //还要去掉交叉路口的点
+        Animal temp2 = animal.getNodeBottom();
+        while (temp2 != null) {
+            //横向消除的计算
+            int upVerticalSize = getSizeOfLinkedSameType(temp2, 2);
+            int bottomVerticalSize = getSizeOfLinkedSameType(temp2, 4);
+            if (upVerticalSize + bottomVerticalSize + 1 >= 3) {
+                //去掉交叉
+            } else {
+                Animal left = temp2.getNodeLeft();
+                Animal right = temp2.getNodeRight();
+                int leftSize = 0, rightSize = 0;
+                if (left != null)
+                    leftSize = getSizeOfLinkedSameType(temp2, 1);
+                if (right != null)
+                    rightSize = getSizeOfLinkedSameType(temp2, 3);
+
+                if ((leftSize + 1 + rightSize) >= 3) {
+                    size = size + 1;
+                }
+            }
+            temp2 = temp2.getNodeBottom();
+        }
+
+
+        return size;
 
     }
+
 
     /**
      * 返回当前结点 四个方向 连接相同类别结点的数目
@@ -263,13 +233,12 @@ public class MainRecycleAdapter extends RecyclerView.Adapter<MainRecycleAdapter.
 
     OnRemoveListener onRemoveListener;
 
-    public void setOnRemoveListener(OnRemoveListener listener) {
-        onRemoveListener = listener;
+    public void setOnRemoveListener(OnRemoveListener onRemoveListener) {
+        this.onRemoveListener = onRemoveListener;
     }
 
-
     public interface OnRemoveListener {
-        void onReadyToMove(int[] positions, int orientation);
+        void onReadyToMove(List<Integer> positions, List<Animal> animals);
     }
 
 }
