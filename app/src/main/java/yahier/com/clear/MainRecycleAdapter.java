@@ -41,7 +41,13 @@ public class MainRecycleAdapter extends RecyclerView.Adapter<MainRecycleAdapter.
         checkToRemoveWithNode();
         click1Position = click2Position = 0;
         clicked1 = clicked2 = false;
+    }
 
+    public void setData(List<Animal> list) {
+        notifyDataSetChanged();
+        checkToRemoveWithNode();
+        click1Position = click2Position = 0;
+        clicked1 = clicked2 = false;
     }
 
     /**
@@ -49,7 +55,7 @@ public class MainRecycleAdapter extends RecyclerView.Adapter<MainRecycleAdapter.
      */
     private void checkToRemoveWithNode() {
         //倒序 从下面删起
-        List<Integer> removes = new ArrayList<>();
+        //List<Integer> removes = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
             Animal temp = list.get(i);
 
@@ -64,14 +70,15 @@ public class MainRecycleAdapter extends RecyclerView.Adapter<MainRecycleAdapter.
             //横向消除
             if (horizonLinkedSize >= 3 || verticalSize >= 3) {
                 //爆炸
-                removes.add(i);
+                //removes.add(i);
+                temp.setToRemove(true);
             } else {
                 int movePosition = getSizeOfRemovedUp(temp);
-                temp.setMovePostion(movePosition);
+                temp.setMovePosition(movePosition);
             }
         }
 
-        onRemoveListener.onReadyToMove(removes, list);
+        onRemoveListener.onReadyToMove(list);
 
     }
 
@@ -238,7 +245,7 @@ public class MainRecycleAdapter extends RecyclerView.Adapter<MainRecycleAdapter.
     }
 
     public interface OnRemoveListener {
-        void onReadyToMove(List<Integer> positions, List<Animal> animals);
+        void onReadyToMove(List<Animal> animals);
     }
 
 }

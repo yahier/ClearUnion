@@ -32,15 +32,15 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(mAdapter);
 
         //新的监听
-        mAdapter.setOnRemoveListener((removedPositions, animalList) -> {
-            Log.e("准备移除", "移除元素的size:" + removedPositions.size());
+        mAdapter.setOnRemoveListener(animalList -> {
+            //Log.e("准备移除", "移除元素的size:" + removedPositions.size());
             recyclerView.postDelayed(() -> {
-                clear(removedPositions);
+                clear(animalList);
             }, 1000);
 
             recyclerView.postDelayed(() -> {
                 move(animalList);
-            }, 1500);
+            }, 3000);
 
 
         });
@@ -56,33 +56,62 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void clear(List<Integer> removedPositions) {
-        /*消失*/
-        for (int i = 0; i < removedPositions.size(); i++) {
-            View view = recyclerView.getChildAt(removedPositions.get(i));
-            Log.d("移除", "position:" + removedPositions.get(i));
-            AnimatorSet set = new AnimatorSet();
-            set.playTogether(
-                    ObjectAnimator.ofFloat(view, "scaleX", 1, 0f),
-                    ObjectAnimator.ofFloat(view, "scaleY", 1, 0f)
-            );
-            set.setDuration(500).start();
+    private void clear(List<Animal> animalList) {
+        for (Animal animal : animalList) {
+            if (animal.isToRemove()) {
+                View view = recyclerView.getChildAt(animal.getPosition());
+                //Log.d("移除", "position:" + removedPositions.get(i));
+                AnimatorSet set = new AnimatorSet();
+                set.playTogether(
+                        ObjectAnimator.ofFloat(view, "scaleX", 1, 0f),
+                        ObjectAnimator.ofFloat(view, "scaleY", 1, 0f)
+                );
+                set.setDuration(2000).start();
+            }
+
         }
     }
 
 
     private void move(List<Animal> animalList) {
-        animalList = Stream.of(animalList).filter(item -> item.movePostion > 0).toList();
-        Log.e("准备移动", "size:" + animalList.size());
-        for (Animal animal : animalList) {
+        List<Animal> moveList = Stream.of(animalList).filter(item -> item.movePosition > 0).toList();
+        //Log.e("准备移动", "size:" + moveList.size());
+        for (Animal animal : moveList) {
             int position = animal.getPosition();
             View view = recyclerView.getChildAt(position);
-            int distance = animal.movePostion * ElementHeight;
-            ObjectAnimator.ofFloat(view, "translationY", 0, distance).setDuration(500).start();
+            int distance = animal.movePosition * ElementHeight;
+            ObjectAnimator.ofFloat(view, "translationY", 0, distance).setDuration(1000).start();
         }
 
 
     }
 
+
+    private void transforData(List<Animal> animalList) {
+        //转移数据
+        long clearSize = Stream.of(animalList).filter(item -> item.isToRemove()).count();
+        Log.e("移除的个数", "size:" + clearSize);
+
+        //先置空 再移动
+        for (Animal animal : animalList) {
+            if (animal.isToRemove()) {
+                animalList.set(animal.getPosition(), null);
+            }
+        }
+
+        for (Animal animal : animalList) {
+            if (animal != null) {
+                int movePosition = animal.getMovePosition();
+                if (movePosition > 0) {
+                    animalList.set(animal.getPosition(), null);
+                    animalList.set(animal.getPosition() + 6 * movePosition, animal);
+                }
+            }
+        }
+
+
+        List<Animal> list = Stream.of(animalList).filter(item -> item != null).toList();
+        Log.e("剩余元素", "size:" + list.size());
+    }
 }
 
